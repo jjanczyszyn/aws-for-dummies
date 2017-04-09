@@ -1,0 +1,5 @@
+---
+- name: Install the nginx packages
+  sudo_user: root
+  apt: name={{ item }} state=present
+  with_items: nginx

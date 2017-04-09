@@ -1,0 +1,46 @@
+<html>
+  <head>
+    <title>Images</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  </head>
+  <body>
+    <h1>Images</h1>
+    <ul id="images"></ul>
+    <script>
+      function createNode(element) {
+          return document.createElement(element);
+        }
+
+      function append(parent, el) {
+          return parent.appendChild(el);
+        }
+
+      const ul = document.getElementById('images');
+      const url = 'http://api-pycon.aws.10clouds.com/images/';
+      fetch(url)
+        .then((resp) => resp.json())
+          .then(
+            function(data) {
+              let images = data;
+              return images.map(
+                function(image) {
+                  let li = createNode('li'),
+                      img = createNode('img'),
+                      span = createNode('span');
+                  img.src = image.url;
+                  span.innerHTML = `${image.created_date}`;
+                  append(li, img);
+                  append(li, span);
+                  append(ul, li);
+              }
+            )
+          }
+        )
+      .catch(
+        function(error) {
+          console.log(error);
+        }
+      ); 
+    </script>
+  </body>
+</html>

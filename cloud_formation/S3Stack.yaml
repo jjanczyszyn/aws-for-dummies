@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: S3 bucket creation with optional CorsConfiguration
+Parameters:
+  ProjectName:
+    Type: String
+  S3BucketName:
+    Type: String
+    Description: Name of S3 bucket to manage
+    AllowedPattern: ^[a-z0-9][a-z0-9-.]*$
+  AllowedOrigin:
+    Type: String
+    Description: URL of allowed origin - it's optional
+    Default: None
+Conditions:
+  CreateCorsConfiguration: !Not [!Equals [ !Ref AllowedOrigin, None ]]
+Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Ref: S3BucketName
+      CorsConfiguration:
+        !If [
+          CreateCorsConfiguration,
+          CorsRules: [
+            {
+              AllowedHeaders: ['*'],
+              AllowedMethods: ['HEAD', 'GET', 'PUT', 'POST'],
+              AllowedOrigins: [Ref: AllowedOrigin],
+              MaxAge: '3000'
+            }
+          ],
+          Ref: 'AWS::NoValue'
+        ]
+      Tags:
+      - Key: Name
+        Value:
+          Ref: ProjectName
+Outputs:
+  S3BucketName:
+    Value:
+      Ref: S3Bucket
+    Export:
+      Name: !Sub '${AWS::StackName}-S3Bucket'

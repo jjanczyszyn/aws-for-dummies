@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Master stack that collects:  Cloudformation + S3Bucket + Route53 Record Set'
+Parameters:
+  S3Bucket:
+    Type: String
+  ProjectName:
+    Type: String
+    Description: Name that will be used to set up the urls e.g. api-<name>.aws.10clouds.com
+  Region:
+    Type: String
+    Description: Region that will be used to set up the inline policy for backups and logs
+  HostedZoneName:
+    Type: String
+    Description: Domain where a subdomain will be created for the new instance
+  AcmCertificateArn:
+    Type: String
+    Description: SSL certificate ARN
+Resources:
+  S3BucketForFrontendStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        ProjectName:
+          Ref: ProjectName
+        S3BucketName:
+          !Sub ${ProjectName}.${HostedZoneName}
+      TemplateURL:
+        Fn::Join:
+        - ''
+        - - Ref: S3Bucket
+          - S3Stack.yaml
+      TimeoutInMinutes: '10'
+  CloudFrontStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: [S3BucketForFrontendStack]
+    Properties:
+      Parameters:
+        ProjectSubdomain:
+          !Sub '${ProjectName}.${HostedZoneName}'
+        AcmCertificateArn:
+          Ref: AcmCertificateArn
+      TemplateURL:
+        Fn::Join:
+        - ''
+        - - Ref: S3Bucket
+          - CloudFrontDistributionStack.yaml
+      TimeoutInMinutes: '10'
+  Route53Webapp:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: CloudFrontStack
+    Properties:
+      Parameters:
+        Route53RecordSetName:
+          !Sub '${ProjectName}.${HostedZoneName}'
+        Route53RecordSetType: 'A'
+        HostedZoneName:
+          Ref: HostedZoneName
+        CloudFormationAliasTarget:
+          Fn::GetAtt:
+          - CloudFrontStack
+          - Outputs.CloudFormationAliasTarget
+      TemplateURL:
+        Fn::Join:
+        - ''
+        - - Ref: S3Bucket
+          - Route53RecordSetStack.yaml
+      TimeoutInMinutes: '10'
+Outputs:
+  S3BucketForFrontendStack:
+    Value:
+      Fn::GetAtt:
+      - S3BucketForFrontendStack
+      - Outputs.S3BucketName
+  CloudFrontDistribution:
+    Value:
+      Fn::GetAtt:
+      - CloudFrontStack
+      - Outputs.CloudFrontDistribution

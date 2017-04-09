@@ -1,0 +1,62 @@
+[
+  {
+    "ParameterKey": "HostedZoneName",
+    "ParameterValue": "aws.10clouds.com"
+  },
+  {
+    "ParameterKey": "S3Bucket",
+    "ParameterValue": "https://s3-eu-west-1.amazonaws.com/pycon-cf-templates/"
+  },
+  {
+    "ParameterKey": "KeyName",
+    "ParameterValue": "pycon"
+  },
+  {
+    "ParameterKey": "DBInstanceType",
+    "ParameterValue": "db.t2.micro"
+  },
+  {
+    "ParameterKey": "DBName",
+    "ParameterValue": "pycon"
+  },
+  {
+    "ParameterKey": "DBUser",
+    "ParameterValue": "pycon"
+  },
+  {
+    "ParameterKey": "DBPassword",
+    "ParameterValue": "..."
+  },
+  {
+    "ParameterKey": "DBAllocatedStorage",
+    "ParameterValue": "5"
+  },
+    {
+    "ParameterKey": "VpcCird",
+    "ParameterValue": "172.31.0.0/16"
+  },
+  {
+    "ParameterKey": "VpcId",
+    "ParameterValue": "..."
+  },
+  {
+    "ParameterKey": "EC2InstanceType",
+    "ParameterValue": "t2.micro"
+  },
+  {
+    "ParameterKey": "EC2VolumeSize",
+    "ParameterValue": "8"
+  },
+  {
+    "ParameterKey": "S3BucketName",
+    "ParameterValue": "pycon-aws-for-dummies-storages"
+  },
+  {
+    "ParameterKey": "ProjectName",
+    "ParameterValue": "pycon"
+  },
+  {
+    "ParameterKey": "Region",
+    "ParameterValue": "eu-west-1"
+  }
+]

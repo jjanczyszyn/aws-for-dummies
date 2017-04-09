@@ -1,0 +1,14 @@
+---
+- name: create user
+  sudo_user: root
+  user:
+    name={{ web_user }}
+    state=present
+
+- name: change shell for new user
+  sudo_user: root
+  command: chsh -s /bin/bash {{ web_user }}
+
+- name: Ensure logs directory exist
+  sudo_user: root
+  file: path={{ log_dir }} owner={{ web_user }} state=directory mode=0755

@@ -1,0 +1,8 @@
+---
+- include: packages.yml
+
+- include: codebase.yml
+  tags: deploy
+
+- include: env.yml
+  tags: env

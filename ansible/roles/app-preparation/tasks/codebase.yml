@@ -1,0 +1,28 @@
+---
+- name: make git archive
+  tags: quick
+  local_action: shell chdir=..
+    git archive {{ git_branch }} -o git-archive.zip
+
+- name: clean app directory
+  sudo_user: "{{ web_user }}"
+  file: path={{ web_app_dir }} state=absent
+
+- name: create app directory
+  sudo_user: "{{ web_user }}"
+  file: path={{ web_app_dir }} state=directory
+
+- name: copy code
+  sudo_user: "{{ web_user }}"
+  unarchive: src=../git-archive.zip dest={{ web_app_dir }}
+
+- name: overwrite manage.py
+  sudo_user: "{{ web_user }}"
+  template: src=manage.py
+            dest={{ web_app_dir }}/
+            mode=0744
+
+- name: copy django settings
+  sudo_user: "{{ web_user }}"
+  template: src={{ django_settings }}
+            dest={{ web_app_dir }}/demo/settings/local.py

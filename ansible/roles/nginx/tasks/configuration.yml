@@ -1,0 +1,41 @@
+---
+- name: Create the directories for site specific configurations
+  sudo_user: root
+  file: path={{nginx_conf_dir}}/{{ item }} state=directory owner=root mode=0750
+  with_items:
+    - "secrets"
+    - "ssl"
+
+- name: replace server_tokens in nginx.conf
+  sudo_user: root
+  replace: dest={{nginx_conf_dir}}/nginx.conf regexp='# server_tokens off;' replace='server_tokens off;'
+
+#- name: copy ssl crt
+#  sudo_user: root
+#  template: src=./host_vars/certs/{{ cert }}
+#            dest={{nginx_conf_dir}}/secrets/demo_pem.crt
+#  when: cert is defined
+#  notify:
+#    - restart nginx
+#
+#- name: copy ssl key
+#  sudo_user: root
+#  template: src=./host_vars/certs/{{ certkey }}
+#            dest={{nginx_conf_dir}}/secrets/demo_private.nocrypt.key
+#  when: certkey is defined
+#  notify:
+#    - restart nginx
+
+- name: copy nginx configuration
+  sudo_user: root
+  template: src={{ nginx_conf }} dest=/etc/nginx/sites-available/{{ web_host }}
+  notify:
+    - restart nginx
+
+- name: Create symlink to sites available
+  sudo_user: root
+  file: src=/etc/nginx/sites-available/{{ web_host }}
+        dest=/etc/nginx/sites-enabled/{{ web_host }}
+        state=link mode=0755
+  notify:
+    - restart nginx

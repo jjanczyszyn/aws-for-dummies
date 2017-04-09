@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFront Distribution for the webapp
+Parameters:
+  ProjectSubdomain:
+    Type: String
+  AcmCertificateArn:
+    Type: String
+Resources:
+  CloudFrontDistribution:
+    Type: 'AWS::CloudFront::Distribution'
+    Properties:
+      DistributionConfig:
+        Origins:
+        - DomainName:
+            !Sub '${ProjectSubdomain}.s3.amazonaws.com'
+          Id:
+            Fn::Join:
+              - ''
+              - - 'S3-'
+                - Ref: ProjectSubdomain
+          S3OriginConfig: {}
+        Enabled: 'true'
+        DefaultRootObject: index.html
+        Aliases:
+        - Ref: ProjectSubdomain
+        DefaultCacheBehavior:
+          TargetOriginId:
+            !Sub 'S3-${ProjectSubdomain}'
+          ForwardedValues:
+            QueryString: 'false'
+            Cookies:
+              Forward: none
+          ViewerProtocolPolicy: redirect-to-https
+        PriceClass: PriceClass_100
+        ViewerCertificate:
+          AcmCertificateArn:
+            Ref: AcmCertificateArn
+          SslSupportMethod: 'sni-only'
+          MinimumProtocolVersion: 'TLSv1'
+Outputs:
+  CloudFrontDistribution:
+    Value:
+      Ref: CloudFrontDistribution
+  CloudFormationAliasTarget:
+    Description: CloudFormation alias target
+    Value:
+      Fn::GetAtt:
+      - CloudFrontDistribution
+      - DomainName

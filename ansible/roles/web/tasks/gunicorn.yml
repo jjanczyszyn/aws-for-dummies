@@ -1,0 +1,5 @@
+---
+- name: write supervisor gunicorn config
+  sudo_user: root
+  template: src=gunicorn.conf
+            dest=/etc/supervisor/conf.d/gunicorn.conf

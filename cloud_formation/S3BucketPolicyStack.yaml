@@ -1,0 +1,24 @@
+Parameters:
+  S3BucketName:
+    Type: String
+Resources:
+  S3BackendBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket:
+        Ref: S3BucketName
+      PolicyDocument:
+        Statement:
+          -
+            Action:
+              - 's3:GetObject'
+            Effect: 'Allow'
+            Resource:
+              Fn::Join:
+                - ''
+                -
+                  - 'arn:aws:s3:::'
+                  -
+                    Ref: S3BucketName
+                  - '/*'
+            Principal: '*'

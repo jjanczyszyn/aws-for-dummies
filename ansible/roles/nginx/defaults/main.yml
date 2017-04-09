@@ -1,0 +1,9 @@
+---
+nginx_packages:
+  - nginx
+
+nginx_conf_dir: "/etc/nginx"
+
+nginx_log_dir: "/var/log/nginx"
+
+nginx_certs_dir: "/etc/nginx/secrets"

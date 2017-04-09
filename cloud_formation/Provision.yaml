@@ -1,0 +1,222 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Master stack that collects:  EC2SecurityGroup + RDSSecurityGroup + S3Bucket + EC2 + EC2Role + RDS'
+Parameters:
+  S3BucketName:
+    Type: String
+    Description: Name of S3 bucket to manage
+    AllowedPattern: ^[a-z0-9][a-z0-9-.]*$
+  ProjectName:
+    Type: String
+    Description: Name that will be used to set up the urls e.g. <name>.aws.10clouds.com
+  Region:
+    Type: String
+    Description: Region that will be used to set up the inline policy for backups and logs
+  HostedZoneName:
+    Type: String
+    Description: Domain where a subdomain will be created for the new instance
+  DBAllocatedStorage:
+    Type: Number
+    Description: The size of the database (Gb)
+    ConstraintDescription: must be between 5+
+    MinValue: '5'
+    MaxValue: '10'
+  DBInstanceType:
+    Type: String
+    Description: The Key Pair to launch instances with
+    AllowedValues:
+    - db.t2.micro
+  DBName:
+    Type: String
+    Description: The database name
+    ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    MinLength: '1'
+    MaxLength: '64'
+  DBPassword:
+    Type: String
+    Description: Database admin account password
+    ConstraintDescription: must contain only alphanumeric characters.
+    AllowedPattern: '[a-zA-Z0-9]*'
+    MinLength: '1'
+    MaxLength: '41'
+    NoEcho: 'true'
+  DBUser:
+    Type: String
+    Description: Database admin account name
+    ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    MinLength: '1'
+    MaxLength: '16'
+  EC2InstanceType:
+    Type: String
+    Description: EC2 HVM instance type (t2.micro, m3.medium, etc).
+    ConstraintDescription: Must be a valid EC2 HVM instance type.
+    AllowedValues:
+    - t2.micro
+  EC2VolumeSize:
+    Type: Number
+    Description: EBS Volume Size (data) to be attached to application node in GBs
+    MinValue: '8'
+    MaxValue: '10'
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Name of an existing EC2 KeyPair. EC2 instances will launch with this KeyPair.
+  S3Bucket:
+    Type: String
+    Description: S3 storage for sub stacks
+  VpcId:
+    Type: String
+  VpcCird:
+    Type: String
+Resources:
+  S3BucketForBackendStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        ProjectName:
+          Ref: ProjectName
+        S3BucketName:
+          Ref: S3BucketName
+        AllowedOrigin:
+          !Sub 'https://${ProjectName}.${HostedZoneName}'
+      TemplateURL:
+        Fn::Join:
+        - ''
+        - - Ref: S3Bucket
+          - S3Stack.yaml
+      TimeoutInMinutes: '10'
+  S3BucketPolicyStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: S3BucketForBackendStack
+    Properties:
+      Parameters:
+        S3BucketName:
+          Ref: S3BucketName
+      TemplateURL:
+        Fn::Join:
+        - ''
+        - - Ref: S3Bucket
+          - S3BucketPolicyStack.yaml
+      TimeoutInMinutes: '10'
+  EC2SecurityGroupStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        ProjectName:
+          Ref: ProjectName
+      TemplateURL:
+        Fn::Join:
+        - ''
+        - - Ref: S3Bucket
+          - EC2SecurityGroupStack.yaml
+      TimeoutInMinutes: '10'
+  RDSSecurityGroupStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: EC2SecurityGroupStack
+    Properties:
+      Parameters:
+        ProjectName:
+          Ref: ProjectName
+        VpcId:
+            Ref: VpcId
+        VpcCird:
+            Ref: VpcCird
+      TemplateURL:
+        Fn::Join:
+        - ''
+        - - Ref: S3Bucket
+          - RDSSecurityGroupStack.yaml
+      TimeoutInMinutes: '10'
+  RDSStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: RDSSecurityGroupStack
+    Properties:
+      Parameters:
+        ProjectName:
+          Ref: ProjectName
+        DBAllocatedStorage:
+          Ref: DBAllocatedStorage
+        DBInstanceType:
+          Ref: DBInstanceType
+        DBPassword:
+          Ref: DBPassword
+        DBName:
+          Ref: DBName
+        DBUser:
+          Ref: DBUser
+      TemplateURL:
+        Fn::Join:
+        - ''
+        - - Ref: S3Bucket
+          - RDSStack.yaml
+      TimeoutInMinutes: '40'
+  EC2Stack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: EC2SecurityGroupStack
+    Properties:
+      Parameters:
+        ProjectName:
+          Ref: ProjectName
+        Region:
+          Ref: Region
+        EC2VolumeSize:
+          Ref: EC2VolumeSize
+        EC2InstanceType:
+          Ref: EC2InstanceType
+        KeyName:
+          Ref: KeyName
+        S3BucketName:
+          Ref: S3BucketName
+      TemplateURL:
+        Fn::Join:
+        - ''
+        - - Ref: S3Bucket
+          - EC2Stack.yaml
+      TimeoutInMinutes: '10'
+  Route53StackAPI:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: EC2Stack
+    Properties:
+      Parameters:
+        Route53RecordSetName:
+          !Sub 'api-${ProjectName}.${HostedZoneName}'
+        Route53RecordSetType: 'A'
+        HostedZoneName:
+          Ref: HostedZoneName
+        IP:
+          Fn::GetAtt:
+          - EC2Stack
+          - Outputs.ElasticIp
+      TemplateURL:
+        Fn::Join:
+        - ''
+        - - Ref: S3Bucket
+          - Route53RecordSetStack.yaml
+      TimeoutInMinutes: '10'
+Outputs:
+  DBName:
+    Value:
+      Ref: DBName
+  DBPort:
+    Value:
+      Fn::GetAtt:
+      - RDSStack
+      - Outputs.DBPort
+  DBUrl:
+    Value:
+      Fn::GetAtt:
+      - RDSStack
+      - Outputs.DBUrl
+  DBUser:
+    Value:
+      Ref: DBUser
+  ElasticIp:
+     Value:
+       Fn::GetAtt:
+       - EC2Stack
+       - Outputs.ElasticIp
+  S3BucketForBackend:
+    Value:
+      Fn::GetAtt:
+      - S3BucketForBackendStack
+      - Outputs.S3BucketName

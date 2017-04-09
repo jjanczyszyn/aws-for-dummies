@@ -1,0 +1,13 @@
+---
+default_system_packages:
+   - supervisor
+   - gcc
+   - unzip
+   - libpq-dev
+   - supervisor
+   - bash
+   - htop
+   - openssl
+   - postgresql-client
+
+timezone: "Europe/Berlin"

@@ -1,0 +1,33 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: RDSSecurity Group
+Parameters:
+  ProjectName:
+    Type: String
+  VpcCird:
+    Type: String
+  VpcId:
+    Type: String
+Resources:
+  RDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub '${ProjectName}-RDSSecurityGroup'
+      SecurityGroupIngress:
+      -
+        CidrIp:
+          Ref: VpcCird
+        FromPort: '5432'
+        IpProtocol: tcp
+        ToPort: '5432'
+      VpcId:
+        Ref: VpcId
+      Tags:
+      - Key: Name
+        Value:
+          Ref: ProjectName
+Outputs:
+  RDSSecurityGroup:
+    Value:
+      Ref: RDSSecurityGroup
+    Export:
+      Name: !Sub '${ProjectName}-RDSSecurityGroup'

@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'RDS + DBSubnet'
+Parameters:
+  ProjectName:
+    Type: String
+  DBAllocatedStorage:
+    ConstraintDescription: must be between 5+
+    Description: The size of the database (Gb)
+    MaxValue: '6144'
+    MinValue: '5'
+    Type: Number
+  DBInstanceType:
+    AllowedValues:
+    - db.t1.micro
+    - db.m1.small
+    - db.t2.micro
+    Description: The Key Pair to launch instances with
+    Type: String
+  DBName:
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: must begin with a letter and contain only alphanumeric
+      characters.
+    Description: The database name
+    MaxLength: '63'
+    MinLength: '1'
+    Type: String
+  DBPassword:
+    AllowedPattern: '[a-zA-Z0-9]*'
+    ConstraintDescription: must contain only alphanumeric characters.
+    Description: Database admin account password
+    MaxLength: '41'
+    MinLength: '1'
+    NoEcho: 'true'
+    Type: String
+  DBUser:
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: must begin with a letter and contain only alphanumeric
+      characters.
+    Description: Database admin account name
+    MaxLength: '16'
+    MinLength: '1'
+    Type: String
+Resources:
+  Database:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier:
+        Ref: DBName
+      AllocatedStorage:
+        Ref: DBAllocatedStorage
+      DBInstanceClass:
+        Ref: DBInstanceType
+      DBName:
+        Ref: DBName
+      Engine: postgres
+      MasterUserPassword:
+        Ref: DBPassword
+      MasterUsername:
+        Ref: DBUser
+      Port: '5432'
+      PubliclyAccessible: false
+      Tags:
+      - Key: Name
+        Value:
+          Ref: ProjectName
+      VPCSecurityGroups:
+      - Fn::ImportValue: !Sub '${ProjectName}-RDSSecurityGroup'
+Outputs:
+  DBPort:
+    Value:
+      Fn::GetAtt:
+      - Database
+      - Endpoint.Port
+  DBUrl:
+    Value:
+      Fn::GetAtt:
+      - Database
+      - Endpoint.Address

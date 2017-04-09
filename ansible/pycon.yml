@@ -1,0 +1,9 @@
+---
+- name: Deploy to pycon host
+  hosts: pycon
+  gather_facts: no
+  roles:
+    - { role: common, tags: common }
+    - { role: nginx, tags: nginx }
+    - { role: app-preparation, tags: app-preparation }
+    - { role: web, tags: web }

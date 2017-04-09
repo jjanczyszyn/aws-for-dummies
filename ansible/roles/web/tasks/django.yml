@@ -1,0 +1,9 @@
+---
+- name: run django migrations
+  sudo_user: "{{ web_user }}"
+  django_manage: app_path={{ web_app_dir }}
+                 virtualenv={{ web_base_dir }}/venv
+                 command=migrate
+  notify:
+    - restart gunicorn
+    - restart celery

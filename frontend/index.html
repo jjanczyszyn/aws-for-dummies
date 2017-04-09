@@ -1,0 +1,80 @@
+<html>
+  <head>
+    <title>S3 POST Form</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  </head>
+  <body>
+        <form>
+            <center>
+                <br><br>
+                <input  id="file_input" name="file" type="file">
+                <br><br><br>
+                <img class="preview" src="" />
+                <br><br><br>
+                <input type="button" value="Upload File to S3" onClick="upload_file_to_s3()">
+            </center>
+        </form>
+        <script>
+            (
+                function() {
+                document.getElementById("file_input").onchange = function(){
+                    var files = document.getElementById("file_input").files;
+                    var file = files[0];
+                    if(file == null){
+                        alert("No file selected.");
+                    }
+                    else{
+                        var reader = new FileReader();
+                        reader.onload = function (e) {
+                            document.querySelector('.preview').src = e.target.result;
+                        }
+                        reader.readAsDataURL(file);
+                    }
+                };
+            }
+            )();
+                function upload_file_to_s3(file){
+                    var files = document.getElementById("file_input").files;
+                    var file = files[0];
+                    if(file == null){
+                        alert("No file selected.");
+                    }else{
+                        var xhr = new XMLHttpRequest();
+                        xhr.onreadystatechange = function () {
+                            if (xhr.readyState == 4) {
+                                if (xhr.status == 200) {
+                                    
+                                }
+                            }
+                        };
+                        xhr.open("GET", "http://api-pycon.aws.10clouds.com/generate_signed_upload_url/", false);
+                        xhr.send();
+                        signed_url = JSON.parse(xhr.responseText)
+                        console.log(signed_url)
+                        upload_file(file, signed_url)
+                    }
+                }
+                function upload_file(file, signed_url){
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("PUT", signed_url);
+                    xhr.onerror = function() {
+                        alert("Could not upload file.");
+                    };
+                    xhr.setRequestHeader("content-type", file.type);
+                    xhr.send(file);
+                    xhr.onerror = function() {
+                    alert("Could not upload file.");
+                };
+                xhr.onreadystatechange = function()
+                  {
+                  if (xhr.readyState==4 && xhr.status==200)
+                    {
+                        alert("File uploaded successfully.");
+                        var url = document.URL;
+                        window.location = "http://pycon.aws.10clouds.com/images.html";
+                    }
+                  }
+                }
+        </script>
+  </body>
+</html>

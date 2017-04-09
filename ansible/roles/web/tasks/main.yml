@@ -1,0 +1,14 @@
+---
+- include: bashrc.yml
+  tags: bash
+
+- include: django.yml
+  tags: [django, deploy]
+
+- include: gunicorn.yml
+  tags: [supervisor, gunicorn]
+
+- name: restart gunicorn server
+  sudo_user: root
+  supervisorctl: name=gunicorn state=restarted
+  tags: [supervisor, gunicorn, deploy]

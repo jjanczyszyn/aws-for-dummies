@@ -1,0 +1,19 @@
+---
+default_packages:
+   - python-celery
+   - python-httplib2
+   - python-lxml
+   - python-virtualenv
+   - python3-dev
+   - libcairo2
+   - libffi-dev
+   - libgdk-pixbuf2.0-0
+   - libjpeg-dev
+   - libjpeg8-dev
+   - libncurses5-dev
+   - libpango1.0-0
+   - libxml2-dev
+   - libxslt1-dev
+   - shared-mime-info
+
+additional_packages: []

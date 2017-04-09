@@ -1,0 +1,4 @@
+---
+- name: add aliases to bashrc
+  sudo_user: "{{ web_user }}"
+  shell: grep -q -F 'cd {{ web_app_dir }} && source ../venv/bin/activate' /home/{{ web_user }}/.bashrc || echo 'cd {{ web_app_dir }} && source ../venv/bin/activate' >> /home/{{ web_user }}/.bashrc

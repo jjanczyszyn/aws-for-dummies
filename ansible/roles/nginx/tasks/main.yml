@@ -1,0 +1,10 @@
+---
+- include: installation.yml
+
+- include: defaults-removal.yml
+
+- include: configuration.yml
+  tags: conf-nginx
+
+- name: Start the nginx service
+  service: name=nginx state=started enabled=yes
